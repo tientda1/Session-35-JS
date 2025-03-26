@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Danh sách nhân viên</title>
+    <style>
+      table {
+        width: 100%;
+        border-collapse: collapse;
+      }
+      th,
+      td {
+        border: 1px solid black;
+        padding: 8px;
+        text-align: left;
+      }
+      th {
+        background-color: #f2f2f2;
+      }
+      .pagination {
+        margin-top: 10px;
+        text-align: center;
+      }
+      .pagination button {
+        margin: 0 5px;
+        padding: 5px 10px;
+        cursor: pointer;
+      }
+      .pagination button.active {
+        background-color: #007bff;
+        color: white;
+        border: none;
+      }
+    </style>
+  </head>
+  <body>
+    <h2>Danh sách nhân viên Rikkei</h2>
+    <input type="text" id="name" placeholder="Tên nhân viên" />
+    <input type="text" id="role" placeholder="Chức vụ" />
+    <button onclick="addEmployee()">Thêm nhân viên</button>
+    <table>
+      <thead>
+        <tr>
+          <th>STT</th>
+          <th>Tên</th>
+          <th>Chức vụ</th>
+        </tr>
+      </thead>
+      <tbody id="employeeTable"></tbody>
+    </table>
+    <div class="pagination" id="pagination"></div>
+
+    <script>
+      const employeesPerPage = 3;
+      let currentPage = 1;
+
+      function loadEmployees() {
+        let employees = JSON.parse(localStorage.getItem("employees")) || [];
+        let table = document.getElementById("employeeTable");
+        table.innerHTML = "";
+
+        const startIndex = (currentPage - 1) * employeesPerPage;
+        const endIndex = startIndex + employeesPerPage;
+        const paginatedEmployees = employees.slice(startIndex, endIndex);
+
+        paginatedEmployees.forEach((employee, index) => {
+          let row = `<tr>
+                    <td>${startIndex + index + 1}</td>
+                    <td>${employee.name}</td>
+                    <td>${employee.role}</td>
+                </tr>`;
+          table.innerHTML += row;
+        });
+
+        renderPagination(employees.length);
+      }
+
+      function renderPagination(totalEmployees) {
+        const totalPages = Math.ceil(totalEmployees / employeesPerPage);
+        let pagination = document.getElementById("pagination");
+        pagination.innerHTML = "";
+
+        let prevButton = `<button onclick="changePage(${currentPage - 1})" ${
+          currentPage === 1 ? "disabled" : ""
+        }>Previous</button>`;
+        pagination.innerHTML += prevButton;
+
+        for (let i = 1; i <= totalPages; i++) {
+          let pageButton = `<button onclick="changePage(${i})" ${
+            i === currentPage ? 'class="active"' : ""
+          }>${i}</button>`;
+          pagination.innerHTML += pageButton;
+        }
+
+        let nextButton = `<button onclick="changePage(${currentPage + 1})" ${
+          currentPage === totalPages ? "disabled" : ""
+        }>Next</button>`;
+        pagination.innerHTML += nextButton;
+      }
+
+      function changePage(page) {
+        let employees = JSON.parse(localStorage.getItem("employees")) || [];
+        const totalPages = Math.ceil(employees.length / employeesPerPage);
+
+        if (page < 1) page = 1;
+        if (page > totalPages) page = totalPages;
+
+        currentPage = page;
+        loadEmployees();
+      }
+
+      function addEmployee() {
+        let name = document.getElementById("name").value;
+        let role = document.getElementById("role").value;
+        if (name.trim() === "" || role.trim() === "") {
+          alert("Vui lòng nhập đầy đủ thông tin");
+          return;
+        }
+        let employees = JSON.parse(localStorage.getItem("employees")) || [];
+        employees.push({ name, role });
+        localStorage.setItem("employees", JSON.stringify(employees));
+        document.getElementById("name").value = "";
+        document.getElementById("role").value = "";
+        currentPage = 1;
+        loadEmployees();
+      }
+
+      window.onload = loadEmployees;
+    </script>
+  </body>
+</html>
